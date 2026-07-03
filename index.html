@@ -387,6 +387,7 @@ function rowsToMatches(rows){
       teamA: r.TeamRosso || '',
       fighterB: r.AtletaBlu || '',
       teamB: r.TeamBlu || '',
+      tatami: (r.Tatami||'').trim(),
       status: mapStato(r.Stato),
       winner: mapVincitore(r.Vincitore, r.AtletaRosso, r.AtletaBlu),
       method: r.Metodo || '',
@@ -474,6 +475,29 @@ function renderList(){
 
   if(currentTab === 'serale'){
     el('matchList').innerHTML = list.map(m=>renderMatchCard(m, true)).join('');
+    return;
+  }
+
+  // Mattina: raggruppa per Tatami (se la colonna è compilata), non per sport
+  if(currentTab === 'mattina'){
+    const hasTatami = list.some(m => m.tatami);
+    if(hasTatami){
+      const groups = [];
+      const seen = {};
+      list.forEach(m=>{
+        const key = m.tatami || 'Altri incontri';
+        if(!seen[key]){ seen[key]=true; groups.push(key); }
+      });
+      let html = '';
+      groups.forEach(tat=>{
+        html += `<div class="sport-group-title">Tatami ${tat}</div>`;
+        list.filter(m=>(m.tatami || 'Altri incontri')===tat).forEach(m=>{ html += renderMatchCard(m, false); });
+      });
+      el('matchList').innerHTML = html;
+      return;
+    }
+    // nessuna colonna Tatami compilata: elenco unico come prima
+    el('matchList').innerHTML = list.map(m=>renderMatchCard(m, false)).join('');
     return;
   }
 
